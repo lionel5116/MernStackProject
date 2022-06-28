@@ -10,6 +10,16 @@ function NavLinks(props) {
   return (
     <ul className="nav-links">
       <li>
+        <NavLink to="/Counter" exact>
+          Counter
+        </NavLink>
+      </li>
+      <li>
+        <NavLink to="/SandBoxPage" exact>
+          Testing Stuff
+        </NavLink>
+      </li>
+      <li>
         <NavLink to="/" exact>
           ALL USERS
         </NavLink>

@@ -9,6 +9,7 @@ import UpdatePlace from './places/pages/UpdatePlace';
 import Counter from './testReducer/testReducer';
 import Auth from './user/pages/Auth';
 import { AuthContext } from './shared/context/auth-context';
+import SandBoxPage from './shared/components/TestCodeSandbox/SandBoxPage'
 
 function App() {
 
@@ -39,7 +40,18 @@ function App() {
         <Route path="/places/:placeID" exact>
           <UpdatePlace />
         </Route>
-        <Redirect to="/" />
+
+
+        
+       <Route path="/SandBoxPage">
+         <SandBoxPage />
+       </Route>
+       <Route path="/Counter">
+         <Counter />
+       </Route>
+
+       <Redirect to="/auth" />
+
       </Switch>
     );
   } else {
@@ -51,7 +63,16 @@ function App() {
        <Route path="/auth">
          <Auth />
        </Route>
+
+       <Route path="/SandBoxPage">
+         <SandBoxPage />
+       </Route>
+       <Route path="/Counter">
+         <Counter />
+       </Route>
+
        <Redirect to="/auth" />
+
      </Switch>
    );
   }

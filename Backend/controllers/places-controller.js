@@ -54,17 +54,6 @@ const createPlace = async (req,res,next) => {
 
    let coordinates = await getCoordsForAddress(address);
 
-   /*
-   const createdPlace = {
-     id: uuid(),
-     title,
-     description,
-     location: coordinates,
-     address,
-     creator,
-   };
- */
-
    const createdPlace = new Place({
     title,
     description,
@@ -75,18 +64,13 @@ const createPlace = async (req,res,next) => {
    });
 
 
-
-   //DUMMY_PLACES.push(createdPlace);
-
-   try{
-    await createPlace.save();
-   } catch {
-    return res.status(500).json({message: 'Failed to create place, please try again.'});
-   }
+    await createdPlace.save().then(() => {
+        res.status(201).json({place: createdPlace})
+    })
+    .catch((error) => {
+        return res.status(500).json({message: 'Failed to add a place, missing required field information.' + error});
+    });
   
-   
-   res.status(201).json({place: createdPlace})
-
 };
 
 const updatePlace = (req,res,next) => {

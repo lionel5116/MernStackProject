@@ -12,7 +12,7 @@ router.get('/:pid', placesControllers.getPlaceById);
 // /api/places/user/<u1>
 router.get('/user/:uid',placesControllers.getPlacesByUserId);
 
-
+// /api/places
 router.post("/", 
        [check("title").not().isEmpty(),
         check("description").isLength({min:5}),

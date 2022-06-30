@@ -2,6 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 const placesRoutes = require('./routes/places-route')
 const userRoutes = require('./routes/users-route');
@@ -20,4 +21,13 @@ app.use((req,res,next) => {
     res.json({message: error})
 })
 
-app.listen(5000);
+mongoose
+  .connect('mongodb+srv://lionel5116:Mag17615%40@cluster0.jwcnt.mongodb.net/places?retryWrites=true&w=majority')
+  .then( () => {
+    console.log('Connected to Mongo DB.. App Starting on PORT 5000')
+    app.listen(5000);
+  })
+  .catch(err => {
+    console.log(err)
+  });
+

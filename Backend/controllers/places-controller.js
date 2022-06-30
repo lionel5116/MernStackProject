@@ -1,6 +1,8 @@
 const uuid = require('uuid').v4;
 const {validationResult} = require('express-validator');
 const getCoordsForAddress = require('../util/location');
+const Place = require('../models/place');
+
 
 let DUMMY_PLACES = [
     {
@@ -52,6 +54,7 @@ const createPlace = async (req,res,next) => {
 
    let coordinates = await getCoordsForAddress(address);
 
+   /*
    const createdPlace = {
      id: uuid(),
      title,
@@ -60,8 +63,28 @@ const createPlace = async (req,res,next) => {
      address,
      creator,
    };
+ */
 
-   DUMMY_PLACES.push(createdPlace);
+   const createdPlace = new Place({
+    title,
+    description,
+    location: coordinates,
+    address,
+    image:'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500',
+    creator
+   });
+
+
+
+   //DUMMY_PLACES.push(createdPlace);
+
+   try{
+    await createPlace.save();
+   } catch {
+    return res.status(500).json({message: 'Failed to create place, please try again.'});
+   }
+  
+   
    res.status(201).json({place: createdPlace})
 
 };

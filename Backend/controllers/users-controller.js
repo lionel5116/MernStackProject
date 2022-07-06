@@ -1,7 +1,7 @@
 
 const {validationResult} = require('express-validator');
-
 const uuid = require('uuid').v4;
+const User = require('../models/user');
 
 const DUMMY_USERS = [
     {
@@ -17,7 +17,7 @@ const getUsers = (req,res,next) => {
    res.json({users: DUMMY_USERS});
 }
 
-const signup = (req,res,next) => {
+const signup = async (req,res,next) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()){
      return res.status(500).json({message: 'Failed to add a user, missing required field information.'});
@@ -25,12 +25,18 @@ const signup = (req,res,next) => {
 
     const {name,email,password} = req.body;
 
-   const hasUer = DUMMY_USERS.find(u => u.email === email);
-   if(hasUer) {
-    res.status(500).json({message:'Email already exists'});
-     return;
-   }
+    let existingUser;
+    try {
+        existingUser = await User.findOne({email : email});
 
+    } catch (error) {
+        return res.status(500).json({message: 'Signup Failed'});
+    }
+   
+    if(existingUser){
+        return res.status(500).json({message: 'User exists already.. please login instead..'});
+    }
+    
     const createdUser = {
         id: uuid(),
         name,

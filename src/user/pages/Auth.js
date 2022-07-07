@@ -11,10 +11,15 @@ import { useForm } from '../../shared/hooks/form-hook'
 import '../../places/pages/PlaceForm.css'
 import { AuthContext } from '../../shared/context/auth-context'
 
+const _PORT = '5000';
+const _NODE_EXPRESS_SERVER = `http://localhost:${_PORT}/api/users`;
 
 
 function Auth() {
+
+  //state management
   const auth = useContext(AuthContext)
+
   const [isLoginMode,setIsLoginMode] = useState(true);
 
     const [formState,inputHandler,setFormData] =  useForm({ 
@@ -28,13 +33,45 @@ function Auth() {
       }
       } ,false)
 
-     const authSubmitHandler =(event)=>{
+     const authSubmitHandler = async (event)=>{
          event.preventDefault();
-         console.log(formState)
+         let SERVER_URL;
+         if(isLoginMode) {
+       
+         }
+         else{
+            //signup mode
+            try {
+              SERVER_URL = _NODE_EXPRESS_SERVER +  '/signup/';
+              console.log(SERVER_URL);
+              const response = await fetch(SERVER_URL, {
+                method: 'POST',
+                headers: {
+                'Content-Type':'application/json'
+                },
+                body: JSON.stringify( {
+                  name : formState.inputs.name.value,
+                  email : formState.inputs.email.value,
+                  password : formState.inputs.password.value,
+                })
+              });
+
+              const responseData = await response.json();
+              
+              console.log(responseData);
+
+            } catch (error) {
+               console.log('Error signing up!!!')
+               return;
+            }
+         }
+
+         //useContext
          auth.login();
      }
      
-    const switchModeHandler = () => {
+    const switchModeHandler = (e) => {
+      e.preventDefault();
       if(!isLoginMode) {
         setFormData({
           ...formState.inputs,
@@ -96,7 +133,7 @@ function Auth() {
              {isLoginMode ? 'LOGIN' : 'SIGNUP'}
           </Button>
           <hr></hr>
-          <Button inverse onClick={switchModeHandler}>SWITCH TO  {isLoginMode ? 'SIGNUP' : 'LOGIN'}</Button>
+          <Button inverse onClick={(e) => switchModeHandler(e)}>SWITCH TO  {isLoginMode ? 'SIGNUP' : 'LOGIN'}</Button>
         </form>
         )
  

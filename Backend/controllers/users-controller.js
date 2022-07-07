@@ -12,9 +12,17 @@ const DUMMY_USERS = [
     }
 ]
 
-const getUsers = (req,res,next) => {
-   res.status(200);
-   res.json({users: DUMMY_USERS});
+const getUsers = async (req,res,next) => {
+    let users;
+    
+     try {
+        users = await User.find({}, '-password');  //return everything except the password
+     } catch (error) {
+        return res.status(500).json({message: 'Users not found. -' + error});
+     }
+
+   res.status(201).json({user: users.map(user =>user.toObject({getters:true}))});
+   
 }
 
 const signup = async (req,res,next) => {
@@ -37,34 +45,47 @@ const signup = async (req,res,next) => {
         return res.status(500).json({message: 'User exists already.. please login instead..'});
     }
     
-    const createdUser = {
-        id: uuid(),
-        name,
-        email,
-        password
-    };
 
-    DUMMY_USERS.push(createdUser);
+    const createdUser = new User({
+      name,
+      email,
+      image:'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500',
+      password,
+      places:[]
+    });
+
+    
+    await createdUser.save().then(() => {
+        //res.status(201).json({user: createdUser})
+        res.status(201).json({user: createdUser.toObject({getters: true})});
+    })
+    .catch((error) => {
+        return res.status(500).json({message: 'Failed to sign up user. please try again: -' + error});
+    });
+
     res.status(201);
-    res.json({message: 'User Created'});
+    //res.json({message: 'User Created'});
 
 }
 
-const login = (req,res,next) => {
-
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-     return res.status(500).json({message: 'Validation on inputs failed.'});
-    }
+const login = async(req,res,next) => {
 
     const {email,password} = req.body;
-    const identifiedUser = DUMMY_USERS.find(u => u.email === email);
-    if (!identifiedUser || identifiedUser.password !== password) {
-        res.status(500).json({message:'Could not locate user'});
+
+    let existingUser;
+    try {
+        existingUser = await User.findOne({email : email});
+
+    } catch (error) {
+        return res.status(500).json({message: 'Loggin in failed... check your email and password '});
     }
-    else{
-        res.status(200).json({message:'SUCCESS'});
+   
+    if(!existingUser || existingUser.password!== password){
+        return res.status(500).json({message: 'Invalid Credentials'});
     }
+
+    res.status(200)
+    //res.status(200).json({message:'Logged In'});
 
 }
 

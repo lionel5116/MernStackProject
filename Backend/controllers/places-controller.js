@@ -2,21 +2,10 @@ const uuid = require('uuid').v4;
 const {validationResult} = require('express-validator');
 const getCoordsForAddress = require('../util/location');
 const Place = require('../models/place');
+const User = require('../models/user');
+const { default: mongoose } = require('mongoose');
 
 
-let DUMMY_PLACES = [
-    {
-      id: 'p1',
-      title: 'Rick James Playboy Mansion ',
-      description: 'I am RICK JAMES BITCH!!!',
-      location: {
-         lat:40.7859,
-         lng: -9890
-      },
-      address:'2345 Pimp Daddy Drive',
-      creator:'u1'
-    }
- ];
 
 const getPlaceById = async  (req,res,next) => {
     const placeID = req.params.pid;
@@ -34,7 +23,7 @@ const getPlaceById = async  (req,res,next) => {
         return res.status(404).json({message: 'Could not find a place for the provided id.'});
     }
 
-    //res.json({place});
+ 
     res.json({place: place.toObject({getters: true})}); //we are using this syntax to bring back the _id as id on the returned result
 }
 
@@ -77,13 +66,34 @@ const createPlace = async (req,res,next) => {
     creator
    });
 
+   let user;
+   try {
+      user = await User.findById(creator);
+   } catch (error) {
+    return res.status(500).json({message: 'There was an issue fetching the related user....' + error});
+   }
 
-    await createdPlace.save().then(() => {
-        res.status(201).json({place: createdPlace})
-    })
-    .catch((error) => {
-        return res.status(500).json({message: 'Failed to add a place, missing required field information.' + error});
-    });
+    console.log(user)
+
+    if(!user)
+    {
+        return res.status(500).json({message: 'User does not exist to create relationship'});
+    }
+
+    try {
+       const _session = await mongoose.startSession();
+       _session.startTransaction();
+       await createdPlace.save({session: _session});
+       user.places.push(createdPlace);
+       await user.save({session: _session});
+       await _session.commitTransaction();
+
+    } catch (err){
+        return res.status(500).json({message: 'Failed to add a place, missing required field information.' + err});
+    }
+
+    res.status(201);
+    //res.status(201).json({place: createdPlace})
   
 };
 
@@ -123,17 +133,26 @@ const deletePlace = async (req,res,next) => {
     const placeId = req.params.pid;
     let place;
     try {
-       place = await Place.findById(placeId);
-       if(!place) {
-        return res.status(404).json({message: 'Could not find a place for the provided id.'});
-       }
-       await place.remove();
-    }
-    catch (error) {
-        return res.status(500).json({message: 'Problem deleting a pace.'});
+      place = await Place.findById(placeId).populate("creator");  //grab the related user record when fetching for the place with populate9)
+      if (!place) {
+        return res
+          .status(404)
+          .json({ message: "Could not find a place for the provided id." });
+      }
+
+      const _session = await mongoose.startSession();
+      _session.startTransaction();
+      await place.remove({ session: _session });
+      place.creator.places.pull(place);   //refer to the related record and pull it
+      await place.creator.save({ session: _session }); //save the user record to reflect that we have removed the place record
+      await _session.commitTransaction();
+
+    } catch (error) {
+      return res.status(500).json({ message: "Problem deleting a pace." });
     }
 
-    res.status(200).json({message:placeId + ' Deleted'})
+    res.status(201);
+    //res.status(200).json({message:placeId + ' Deleted'})
 }
 
 exports.getPlaceById = getPlaceById;

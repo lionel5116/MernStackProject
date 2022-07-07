@@ -10,7 +10,8 @@ const placeSchema = new Schema ({
         lat:{ type: Number, required: true},
         lng: { type: Number, required: true}
      },
-     creator: { type: String, required: true},
+     //this is how you do referencial integrity between two document object
+     creator: { type: mongoose.Types.ObjectId, required: true, ref: 'User'} 
 });
 
 //The naming convention for our model: UpperCase FirstLetter,

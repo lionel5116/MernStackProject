@@ -85,7 +85,7 @@ const login = async(req,res,next) => {
     }
 
     res.status(200)
-    //res.status(200).json({message:'Logged In'});
+    res.status(200).json({message:'Logged In'});
 
 }
 

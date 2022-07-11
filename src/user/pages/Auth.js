@@ -37,7 +37,34 @@ function Auth() {
          event.preventDefault();
          let SERVER_URL;
          if(isLoginMode) {
-       
+          try {
+            SERVER_URL = _NODE_EXPRESS_SERVER +  '/login/';
+            console.log(SERVER_URL);
+            const response = await fetch(SERVER_URL, {
+              method: 'POST',
+              headers: {
+              'Content-Type':'application/json'
+              },
+              body: JSON.stringify( {
+                email : formState.inputs.email.value,
+                password : formState.inputs.password.value,
+              })
+            });
+
+            const responseData = await response.json();
+            
+            console.log(responseData.message);
+            if(responseData.message === 'Logged In')
+            {
+              auth.login();
+            }
+    
+          } catch (error) {
+             console.log('Error signing up!!!')
+             return;
+          }
+            //  console.log('You are in sign in mode.. this has not been implemented yet');
+            //return;
          }
          else{
             //signup mode
@@ -59,6 +86,10 @@ function Auth() {
               const responseData = await response.json();
               
               console.log(responseData);
+              if(responseData.user.email.length > 0)
+              {
+                auth.login();
+              }
 
             } catch (error) {
                console.log('Error signing up!!!')
@@ -66,8 +97,8 @@ function Auth() {
             }
          }
 
-         //useContext
-         auth.login();
+         //useContext 
+         //auth.login();
      }
      
     const switchModeHandler = (e) => {

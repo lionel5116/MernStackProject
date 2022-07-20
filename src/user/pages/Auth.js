@@ -13,6 +13,7 @@ import { AuthContext } from '../../shared/context/auth-context'
 import ErrorModal from '../../shared/components/UIElements/ErrorModal'
 import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 import { Fragment } from 'react'
+import { useHttpClient } from '../../shared/hooks/http-hook'
 
 const _PORT = '5000';
 const _NODE_EXPRESS_SERVER = `http://localhost:${_PORT}/api/users`;
@@ -22,8 +23,10 @@ function Auth() {
   //state management
   const auth = useContext(AuthContext)
   const [isLoginMode,setIsLoginMode] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error,setError] = useState();
+  //const [isLoading, setIsLoading] = useState(false);
+  //const [error,setError] = useState();
+
+  const {isLoading,error,sendRequest,clearError} = useHttpClient();  //our custom hook
 
     const [formState,inputHandler,setFormData] =  useForm({ 
         email: {
@@ -42,7 +45,7 @@ function Auth() {
          if(isLoginMode) {
           try {
 
-            setIsLoading(true);
+           // setIsLoading(true);
             
             /*
             http://localhost:5000/api/users/login/
@@ -51,6 +54,8 @@ function Auth() {
             */
             SERVER_URL = _NODE_EXPRESS_SERVER +  '/login/';
             console.log(SERVER_URL);
+            
+            /*
             const response = await fetch(SERVER_URL, {
               method: 'POST',
               headers: {
@@ -61,6 +66,10 @@ function Auth() {
                 password : formState.inputs.password.value,
               })
             });
+            */
+
+            //using a custom hook
+            const response = aw
 
             const responseData = await response.json();
             if(!response.ok)  //anything other than a 200+ throw regular built-in java Error handler
@@ -68,7 +77,7 @@ function Auth() {
                throw new Error(response.message);
             }
 
-            setIsLoading(false);
+           // setIsLoading(false);
             
         
             if(responseData.message === 'Logged In')
@@ -78,8 +87,8 @@ function Auth() {
     
           } catch (error) {
              console.log('Error signing in !!')
-             setError(error.message || 'Invalid Credentials..could not log in');
-             setIsLoading(false);
+             //setError(error.message || 'Invalid Credentials..could not log in');
+            // setIsLoading(false);
              return;
           }
           
@@ -88,7 +97,7 @@ function Auth() {
             //signup mode
             try {
 
-              setIsLoading(true);
+             //setIsLoading(true);
 
               SERVER_URL = _NODE_EXPRESS_SERVER +  '/signup/';
               console.log(SERVER_URL);
@@ -111,7 +120,7 @@ function Auth() {
               }
               console.log(responseData);
 
-              setIsLoading(false);
+              //setIsLoading(false);
 
               if(responseData.user.email.length > 0)
               {
@@ -120,8 +129,8 @@ function Auth() {
 
             } catch (error) {
                console.log('Error signing up!!!')
-               setIsLoading(false);
-               setError(error.message || 'Something went wrong, please try again');
+               //setIsLoading(false);
+              // setError(error.message || 'Something went wrong, please try again');
                return;
             }
          }

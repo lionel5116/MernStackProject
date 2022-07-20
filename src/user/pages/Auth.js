@@ -10,17 +10,20 @@ import { VALIDATOR_EMAIL,
 import { useForm } from '../../shared/hooks/form-hook'
 import '../../places/pages/PlaceForm.css'
 import { AuthContext } from '../../shared/context/auth-context'
+import ErrorModal from '../../shared/components/UIElements/ErrorModal'
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
+import { Fragment } from 'react'
 
 const _PORT = '5000';
 const _NODE_EXPRESS_SERVER = `http://localhost:${_PORT}/api/users`;
-
 
 function Auth() {
 
   //state management
   const auth = useContext(AuthContext)
-
   const [isLoginMode,setIsLoginMode] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error,setError] = useState();
 
     const [formState,inputHandler,setFormData] =  useForm({ 
         email: {
@@ -38,6 +41,14 @@ function Auth() {
          let SERVER_URL;
          if(isLoginMode) {
           try {
+
+            setIsLoading(true);
+            
+            /*
+            http://localhost:5000/api/users/login/
+              slickrick@gmail.com
+              conaine
+            */
             SERVER_URL = _NODE_EXPRESS_SERVER +  '/login/';
             console.log(SERVER_URL);
             const response = await fetch(SERVER_URL, {
@@ -45,30 +56,40 @@ function Auth() {
               headers: {
               'Content-Type':'application/json'
               },
-              body: JSON.stringify( {
+               body: JSON.stringify( {
                 email : formState.inputs.email.value,
                 password : formState.inputs.password.value,
               })
             });
 
             const responseData = await response.json();
+            if(!response.ok)  //anything other than a 200+ throw regular built-in java Error handler
+            {
+               throw new Error(response.message);
+            }
+
+            setIsLoading(false);
             
-            console.log(responseData.message);
+        
             if(responseData.message === 'Logged In')
             {
               auth.login();
             }
     
           } catch (error) {
-             console.log('Error signing up!!!')
+             console.log('Error signing in !!')
+             setError(error.message || 'Invalid Credentials..could not log in');
+             setIsLoading(false);
              return;
           }
-            //  console.log('You are in sign in mode.. this has not been implemented yet');
-            //return;
+          
          }
          else{
             //signup mode
             try {
+
+              setIsLoading(true);
+
               SERVER_URL = _NODE_EXPRESS_SERVER +  '/signup/';
               console.log(SERVER_URL);
               const response = await fetch(SERVER_URL, {
@@ -84,8 +105,14 @@ function Auth() {
               });
 
               const responseData = await response.json();
-              
+              if(!response.ok)  //anything other than a 200+ throw regular built-in java Error handler
+              {
+                 throw new Error(response.message);
+              }
               console.log(responseData);
+
+              setIsLoading(false);
+
               if(responseData.user.email.length > 0)
               {
                 auth.login();
@@ -93,10 +120,12 @@ function Auth() {
 
             } catch (error) {
                console.log('Error signing up!!!')
+               setIsLoading(false);
+               setError(error.message || 'Something went wrong, please try again');
                return;
             }
          }
-
+        
          //useContext 
          //auth.login();
      }
@@ -121,10 +150,17 @@ function Auth() {
       setIsLoginMode(prevMode => !prevMode)
     };
 
+  const errorHandler = (e) => {
+    e.preventDefault();
+     setError(null)
+  }
 
 
   return (
+       <Fragment>
+        <ErrorModal error={error} onClear={(e) => errorHandler(e)} />
        <form  className='place-form' onSubmit={authSubmitHandler}>
+        {isLoading && <LoadingSpinner asOverlay />}
         <h2>
             Login Required
         </h2>
@@ -166,6 +202,7 @@ function Auth() {
           <hr></hr>
           <Button inverse onClick={(e) => switchModeHandler(e)}>SWITCH TO  {isLoginMode ? 'SIGNUP' : 'LOGIN'}</Button>
         </form>
+        </Fragment>
         )
  
 }

@@ -23,10 +23,10 @@ function Auth() {
   //state management
   const auth = useContext(AuthContext)
   const [isLoginMode,setIsLoginMode] = useState(true);
-  //const [isLoading, setIsLoading] = useState(false);
-  //const [error,setError] = useState();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error,setError] = useState();
 
-  const {isLoading,error,sendRequest,clearError} = useHttpClient();  //our custom hook
+  //const {isLoading,error,sendRequest,clearError} = useHttpClient();  //our custom hook
 
     const [formState,inputHandler,setFormData] =  useForm({ 
         email: {
@@ -42,65 +42,89 @@ function Auth() {
      const authSubmitHandler = async (event)=>{
          event.preventDefault();
          let SERVER_URL;
-         if(isLoginMode) {
-          try {
 
-           // setIsLoading(true);
-            
+         setIsLoading(true);
+
+         if(isLoginMode) {
+        
             /*
             http://localhost:5000/api/users/login/
               slickrick@gmail.com
               conaine
             */
-            SERVER_URL = _NODE_EXPRESS_SERVER +  '/login/';
-            console.log(SERVER_URL);
             
             /*
-            const response = await fetch(SERVER_URL, {
-              method: 'POST',
-              headers: {
-              'Content-Type':'application/json'
-              },
-               body: JSON.stringify( {
-                email : formState.inputs.email.value,
-                password : formState.inputs.password.value,
-              })
-            });
+              SERVER_URL = _NODE_EXPRESS_SERVER +  '/login/';
+            console.log(SERVER_URL);
+
+
+            try {
+              await sendRequest(
+                //using a custom hook
+                SERVER_URL,
+                'POST',
+                {
+                  email: formState.inputs.email.value,
+                  password: formState.inputs.password.value,
+                },
+                {
+                  'Content-Type': 'application/json',
+                }
+              );
+              auth.login();
+            } catch (error) {
+              //set error state set in custom hook
+             
+            }
             */
 
-            //using a custom hook
-            const response = aw
-
-            const responseData = await response.json();
-            if(!response.ok)  //anything other than a 200+ throw regular built-in java Error handler
-            {
-               throw new Error(response.message);
-            }
-
-           // setIsLoading(false);
             
-        
-            if(responseData.message === 'Logged In')
-            {
-              auth.login();
-            }
-    
-          } catch (error) {
-             console.log('Error signing in !!')
-             //setError(error.message || 'Invalid Credentials..could not log in');
-            // setIsLoading(false);
-             return;
-          }
+         try {
+
+          setIsLoading(true);
+
+          SERVER_URL = _NODE_EXPRESS_SERVER +  '/login/';
+          console.log(SERVER_URL);
           
+          const response = await fetch(SERVER_URL, {
+            method: 'POST',
+            headers: {
+            'Content-Type':'application/json'
+            },
+            body: JSON.stringify( {
+              email: formState.inputs.email.value,
+                password: formState.inputs.password.value,
+            })
+          });
+
+          const responseData = await response.json();
+          if(!response.ok)  //anything other than a 200+ throw regular built-in java Error handler
+          {
+             throw new Error(response.message);
+          }
+          console.log(responseData);
+
+          setIsLoading(false);
+          auth.login();
+
+        } catch (error) {
+           console.log('Error signing in !!!')
+           setIsLoading(false);
+           setError(error.message || 'Something went wrong, please try again');
+        }
+            
          }
          else{
+
             //signup mode
+          
             try {
 
-             //setIsLoading(true);
+              setIsLoading(true);
 
               SERVER_URL = _NODE_EXPRESS_SERVER +  '/signup/';
               console.log(SERVER_URL);
+              
               const response = await fetch(SERVER_URL, {
                 method: 'POST',
                 headers: {
@@ -120,7 +144,7 @@ function Auth() {
               }
               console.log(responseData);
 
-              //setIsLoading(false);
+              setIsLoading(false);
 
               if(responseData.user.email.length > 0)
               {
@@ -129,14 +153,12 @@ function Auth() {
 
             } catch (error) {
                console.log('Error signing up!!!')
-               //setIsLoading(false);
-              // setError(error.message || 'Something went wrong, please try again');
+               setIsLoading(false);
+               setError(error.message || 'Something went wrong, please try again');
                return;
             }
+                
          }
-        
-         //useContext 
-         //auth.login();
      }
      
     const switchModeHandler = (e) => {
@@ -159,10 +181,12 @@ function Auth() {
       setIsLoginMode(prevMode => !prevMode)
     };
 
+    
   const errorHandler = (e) => {
     e.preventDefault();
-     setError(null)
+    setError(null)
   }
+  
 
 
   return (

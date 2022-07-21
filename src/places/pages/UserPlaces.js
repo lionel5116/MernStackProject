@@ -3,7 +3,11 @@ import { useParams } from 'react-router-dom';
 
 import PlaceList from '../components/PlaceList'
 
+import { useEffect, useState } from 'react';
+import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 
+/*
 const DUMMY_PLACES = [
   
  {
@@ -32,11 +36,68 @@ const DUMMY_PLACES = [
 },
 
 ];
+*/
+
+
 
 function UserPlaces() {
+
+
+  const [error,setError] = useState();
+  const [loadedPlaces,setloadedPlaces] = useState([])
+  const [isLoading, setIsLoading] = useState(false);
+
+  const _PORT = '5000';
+  const _NODE_EXPRESS_SERVER = `http://localhost:${_PORT}/api/places`;
+  
   const userID = useParams().userID;
-  const loadedPlaces = DUMMY_PLACES.filter(place => place.creator === userID)
-  return <PlaceList items={loadedPlaces}/>
+
+
+  useEffect(() => {
+    const sendRequest = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(_NODE_EXPRESS_SERVER + `/user/${userID}/`);
+        const responsData = await response.json();
+
+        /*
+        if (!response.ok) {
+          //anything other than a 200+ throw regular built-in java Error handler
+          throw new Error(response.message);
+        }
+        */
+        setIsLoading(false);
+        setloadedPlaces(responsData.places);
+        
+
+      } catch (error) {
+        setError(
+          "Something went wrong with fetching the places " + error.message
+        );
+        setIsLoading(false);
+      }
+    };
+    sendRequest();
+  },[_NODE_EXPRESS_SERVER,userID]);
+
+
+  const errorHandler = (e) => {
+    e.preventDefault();
+    setError(null)
+  }
+
+  return (
+    <React.Fragment>
+       <ErrorModal error={error} onClear={(e) => errorHandler(e)} />
+       {isLoading && (
+        <div className='center'>
+          <LoadingSpinner />
+        </div>
+       )}
+       {!isLoading && loadedPlaces && <PlaceList items={loadedPlaces}/>}
+    </React.Fragment>
+         
+  )
 }
 
 export default UserPlaces

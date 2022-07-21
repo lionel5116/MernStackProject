@@ -56,15 +56,14 @@ const signup = async (req,res,next) => {
 
     
     await createdUser.save().then(() => {
-        //res.status(201).json({user: createdUser})
         res.status(201).json({user: createdUser.toObject({getters: true})});
     })
     .catch((error) => {
         return res.status(500).json({message: 'Failed to sign up user. please try again: -' + error});
     });
 
-    //res.status(201);
-    //res.json({message: 'User Created'});
+    res.status(201).json({user: createdUser.toObject({getters: true})});
+    res.json({message: 'User Created'}); //need this for the front-end to work
 
 }
 
@@ -85,7 +84,8 @@ const login = async(req,res,next) => {
     }
 
     res.status(200)
-    res.status(200).json({message:'Logged In'});
+    res.status(200).json({message:'Logged In',
+                          user:existingUser.toObject({getters:true})});
 
 }
 

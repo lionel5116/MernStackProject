@@ -13,7 +13,7 @@ import { AuthContext } from '../../shared/context/auth-context'
 import ErrorModal from '../../shared/components/UIElements/ErrorModal'
 import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 import { Fragment } from 'react'
-import { useHttpClient } from '../../shared/hooks/http-hook'
+//import { useHttpClient } from '../../shared/hooks/http-hook'
 
 const _PORT = '5000';
 const _NODE_EXPRESS_SERVER = `http://localhost:${_PORT}/api/users`;
@@ -105,7 +105,7 @@ function Auth() {
           console.log(responseData);
 
           setIsLoading(false);
-          auth.login();
+          auth.login(responseData.user.id);
 
         } catch (error) {
            console.log('Error signing in !!!')
@@ -148,7 +148,7 @@ function Auth() {
 
               if(responseData.user.email.length > 0)
               {
-                auth.login();
+                auth.login(responseData.user.id);
               }
 
             } catch (error) {

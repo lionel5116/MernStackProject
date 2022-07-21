@@ -93,7 +93,7 @@ const createPlace = async (req,res,next) => {
     }
 
     res.status(201);
-    //res.status(201).json({place: createdPlace})
+    res.status(201).json({place: createdPlace})  //need this for the front-end to work
   
 };
 

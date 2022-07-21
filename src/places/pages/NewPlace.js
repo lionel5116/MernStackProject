@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState,useContext} from 'react'
 
 import Input from '../../shared/components/FormElements/Input'
 import './PlaceForm.css'
@@ -8,8 +8,21 @@ import {
    VALIDATOR_REQUIRE} 
    from '../../shared/util/Validators'
 import { useForm } from '../../shared/hooks/form-hook'
+import { AuthContext } from '../../shared/context/auth-context'
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
+import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import { Fragment } from 'react'
+import { useHistory } from 'react-router-dom'
+
+
+const _PORT = '5000';
+const _NODE_EXPRESS_SERVER = `http://localhost:${_PORT}/api/places`;
 
 function NewPlace() {
+  const auth = useContext(AuthContext)
+  const [isLoading, setIsLoading] = useState(false);
+  const [error,setError] = useState();
+
 
 const [formState,InputHandler] = useForm({
     title: {
@@ -27,17 +40,66 @@ const [formState,InputHandler] = useForm({
 },false);
 
 
-  const placeSubmitHandler = event => {
-    event.preventDefault();
-    console.log(formState.inputs);  //send this to backend
+const history = useHistory();
 
+  const placeSubmitHandler = async (event) => {
+    event.preventDefault();
+    //console.log(formState.inputs);  //send this to backend
+    let SERVER_URL;
+    try {
+
+      setIsLoading(true);
+
+      SERVER_URL = _NODE_EXPRESS_SERVER;
+      console.log(SERVER_URL);
+      
+      const response = await fetch(SERVER_URL, {
+        method: 'POST',
+        headers: {
+        'Content-Type':'application/json'
+        },
+        body: JSON.stringify( {
+            title: formState.inputs.title.value,
+            description: formState.inputs.description.value,
+            address: formState.inputs.address.value,
+            creator: auth.userId
+        })
+      });
+
+      const responseData = await response.json();
+      /*
+      if(!response.ok)  //anything other than a 200+ throw regular built-in java Error handler
+      {
+         throw new Error(response.message);
+      }
+      */
+      console.log(responseData);
+
+      setIsLoading(false);
+      history.push('/')
+
+    } catch (error) {
+       console.log('Error Posting a new Place!!!!')
+       setIsLoading(false);
+       setError(error.message || 'Something went wrong, please try again');
+    }
   };
+
+     
+  const errorHandler = (e) => {
+    e.preventDefault();
+    setError(null)
+  }
  
   //THE INPUT(S) ARE CUSTOM INPUTS THAT TAKE PROPS: VALIDATORS, CALLBACK METHOD (onInput) etc..
   return (
+    <Fragment>
+      <ErrorModal error={error} onClear={(e) => errorHandler(e)} />
     <form
       className='place-form'
-      onSubmit={placeSubmitHandler}>
+      onSubmit={placeSubmitHandler}
+      >
+      {isLoading && <LoadingSpinner asOverlay />}
       <Input 
           id="title"
           element='input' 
@@ -69,6 +131,7 @@ const [formState,InputHandler] = useForm({
           >ADD PLACE
           </Button>
     </form>
+    </Fragment>
   )
 }
 

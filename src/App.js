@@ -1,4 +1,4 @@
-import React , {useState,useCallback, Fragment} from 'react';
+import React , {useState,useCallback} from 'react';
 import { Redirect } from 'react-router-dom';
 import {BrowserRouter as Router,Route,Switch} from 'react-router-dom'
 import Users from './user/pages/Users';
@@ -14,13 +14,16 @@ import SandBoxPage from './shared/components/TestCodeSandbox/SandBoxPage'
 function App() {
 
   const [isLoggedIn,setisLoggedIn] = useState(false);
+  const [userId,setUserId] = useState(null);
   
-  const login = useCallback(() => {
-    setisLoggedIn(true)
+  const login = useCallback((uid) => {
+    setisLoggedIn(true);
+    setUserId(uid);
   },[])
 
   const logout = useCallback(() => {
     setisLoggedIn(false)
+    setUserId(null);
   },[])
 
   let routes;
@@ -81,6 +84,7 @@ function App() {
     <AuthContext.Provider value={
       {
         isLoggedIn: isLoggedIn,
+        userId:userId,
         login:login,
         logout:logout
      }
